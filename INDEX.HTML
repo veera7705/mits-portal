@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e725e">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MITS ALL IN ONE PORTAL</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e725e, #2a5298, #1e3c72);
+    background-size: 300% 300%;
+    animation: gradientBG 8s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+@keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+}
+
+.card {
+    width: 90%;
+    max-width: 750px;
+    padding: 35px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+button {
+    padding: 14px;
+    font-size: 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #d1ff03;
+    color: #1e3c72;
+    font-weight: bold;
+    transition: 0.3s;
+    width: 100%;
+}
+
+button:hover {
+    transform: translateY(-3px);
+    background: #f4f4f4;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.hidden { display: none; }
+
+.extra-box {
+    margin-top: 25px;
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.dark-mode {
+    background: #111 !important;
+    color: #fff !important;
+}
+/* ===== HAMBURGER ===== */
+.hamburger {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    font-size: 26px;
+    cursor: pointer;
+    z-index: 2001;
+    background: rgba(255,255,255,0.2);
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+.menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s;
+    z-index: 2000;
+}
+
+.menu-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: -270px;
+    width: 260px;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    padding-top: 80px;
+    transition: 0.4s ease;
+    z-index: 2002;
+}
+
+.side-menu.active {
+    left: 0;
+}
+
+.side-menu a {
+    display: block;
+    padding: 15px 20px;
+    color: white;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.side-menu a:hover {
+    background: #d1ff03;
+    color: black;
+}
+
+/* ===== MODAL ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    animation: fadeIn 0.3s;
+}
+
+.modal-card {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(15px);
+    padding: 25px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.hidden { display: none; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* ===== CALCULATOR ===== */
+.calculator input {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: none;
+}
+
+.calculator button {
+    width: 23%;
+    padding: 10px;
+    margin: 4px 1%;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+</style>
+
+<script>
+function showOptions() {
+    startPage.classList.add("hidden");
+    mainOptions.classList.remove("hidden");
+}
+
+function showAutonomousMenu() {
+    document.getElementById("menuTitle").innerText = "MITS Autonomous";
+    mainOptions.classList.add("hidden");
+    autonomousMenu.classList.remove("hidden");
+}
+
+function showDeemedSameMenu() {
+    document.getElementById("menuTitle").innerText = "MITS Deemed University";
+    mainOptions.classList.add("hidden");
+    autonomousMenu.classList.remove("hidden");
+}
+
+function goBackToMain() {
+    autonomousMenu.classList.add("hidden");
+    mainOptions.classList.remove("hidden");
+}
+
+function openFeedback() {
+    autonomousMenu.classList.add("hidden");
+    feedbackPage.classList.remove("hidden");
+}
+
+function closeFeedback() {
+    feedbackPage.classList.add("hidden");
+    autonomousMenu.classList.remove("hidden");
+}
+
+function toggleDark() {
+    document.body.classList.toggle("dark-mode");
+}
+
+/* Greeting + Time */
+function updateGreetingAndTime() {
+    const hour = new Date().getHours();
+    let greeting = "Welcome";
+
+    if (hour < 12) greeting = "🌅 Good Morning";
+    else if (hour < 18) greeting = "🌞 Good Afternoon";
+    else greeting = "🌙 Good Evening";
+
+    document.getElementById("greetingText").innerText =
+        greeting + ", MITS Student";
+
+    document.getElementById("liveTime").innerText =
+        new Date().toLocaleTimeString();
+}
+setInterval(updateGreetingAndTime, 1000);
+/* ===== MENU ===== */
+function toggleMenu() {
+    sideMenu.classList.add("active");
+    overlay.classList.add("active");
+}
+
+function closeMenu() {
+    sideMenu.classList.remove("active");
+    overlay.classList.remove("active");
+}
+
+/* ===== CALCULATOR ===== */
+function openCalculator() {
+    document.getElementById("calculatorModal").classList.remove("hidden");
+    closeMenu();
+}
+
+function closeCalculator() {
+    document.getElementById("calculatorModal").classList.add("hidden");
+}
+
+function press(val) {
+    document.getElementById("calcDisplay").value += val;
+}
+
+function calculate() {
+    try {
+        document.getElementById("calcDisplay").value =
+            eval(document.getElementById("calcDisplay").value);
+    } catch {
+        alert("Invalid Expression");
+    }
+}
+
+function clearCalc() {
+    document.getElementById("calcDisplay").value = "";
+}
+
+/* ===== ABOUT ===== */
+function openAbout() {
+    document.getElementById("aboutModal").classList.remove("hidden");
+    closeMenu();
+}
+
+function closeAbout() {
+    document.getElementById("aboutModal").classList.add("hidden");
+}
+
+/* SAFE MODAL CLOSE — ONLY WHEN CLICKING BACKGROUND */
+document.addEventListener("DOMContentLoaded", () => {
+
+    // FIX sideMenu & overlay references
+    sideMenu = document.getElementById("sideMenu");
+    overlay = document.getElementById("overlay");
+
+    // Close modal only if background is clicked
+    document.querySelectorAll(".modal").forEach(modal => {
+        modal.addEventListener("click", function (e) {
+            if (e.target === modal) {
+                modal.classList.add("hidden");
+            }
+        });
+    });
+});
+/* FIX: define elements */
+let sideMenu, overlay;
+
+document.addEventListener("DOMContentLoaded", () => {
+    sideMenu = document.getElementById("sideMenu");
+    overlay = document.getElementById("overlay");
+});
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(() => console.log("Service Worker Registered"))
+      .catch(err => console.log("SW registration failed", err));
+  });
+}
+</script>
+</head>
+
+<body>
+    <!-- Hamburger Icon -->
+<div class="hamburger" onclick="toggleMenu()">☰</div>
+
+<!-- Overlay -->
+<div id="overlay" class="menu-overlay" onclick="closeMenu()"></div>
+<div id="sideMenu" class="side-menu">
+    <a href="#" onclick="openCalculator()">🧮 Calculator</a>
+    <a href="#" onclick="openAbout()">ℹ About</a>
+</div>
+<!-- START PAGE -->
+<div id="startPage" class="card">
+    <h1>🎓 MITS ALL IN ONE PORTAL</h1>
+    <p>Access all student services from one place</p>
+    <button onclick="showOptions()">Get Started</button>
+</div>
+
+<!-- MAIN OPTIONS -->
+<div id="mainOptions" class="card hidden">
+    <h2>Select Institution Type</h2>
+    <div class="grid">
+        <button onclick="showAutonomousMenu()">🏫MITS Autonomous</button>
+        <button onclick="showDeemedSameMenu()">🏫MITS Deemed University</button>
+    </div>
+</div>
+
+<!-- SHARED MENU (USED BY BOTH) -->
+<div id="autonomousMenu" class="card hidden">
+    <h2 id="menuTitle">🏫 MITS AUTONOMOUS</h2>
+
+    <button onclick="toggleDark()" style="margin-bottom:15px;">
+        🌙 Toggle Dark Mode
+    </button>
+
+    <div class="extra-box">
+        <h3 id="greetingText">Welcome</h3>
+        <p>⏰ <span id="liveTime"></span></p>
+    </div>
+
+    <div class="extra-box">
+        <h3>📢 Notices</h3>
+        <p id="noticeText" style="font-weight:bold;"></p>
+    </div>
+
+    <div class="grid">
+    <a href="http://20.0.121.215/" target="_blank">
+        <button>📚 MOODLE</button>
+    </a>
+
+    <a href="http://mitsims.in/" target="_blank">
+        <button>🗂️ GEMS</button>
+    </a>
+
+    <a href="https://admin.mits923.examly.io/" target="_blank">
+        <button>🎯 TPO</button>
+    </a>
+
+    <a href="https://mitsfbs.heedsites.com/login" target="_blank">
+        <button>📝 FEEDBACK</button>
+    </a>
+
+    <a href="https://mits.ac.in/ugc-autonomous-exam-portal" target="_blank">
+        <button>🧾 EXAM PORTAL</button>
+    </a>
+
+    <a href="https://mits.ac.in/results" target="_blank">
+        <button>📊 RESULTS</button>
+    </a>
+
+    <a href="https://mits.ac.in/lib" target="_blank">
+        <button>📖 LIBRARY</button>
+    </a>
+
+    <a href="https://mits.ac.in/studentclubs" target="_blank">
+        <button>🎉 STUDENT CLUBS</button>
+    </a>
+
+    <a href="https://mits.ac.in/studentclubs" target="_blank">
+        <button>📻 MITS RADIO</button>
+    </a>
+</div>
+    <div class="extra-box">
+        <h3>📚 EXTRA COURSES</h3>
+        <div class="grid">
+    <a href="https://swayam.gov.in/nc_details/NPTEL" target="_blank">
+        <button>🎓 SWAYAM NPTEL</button>
+    </a>
+
+    <a href="https://www.futureskillsprime.in/" target="_blank">
+        <button>💻 NASSCOM</button>
+    </a>
+</div>
+    </div>
+
+<div class="extra-box">
+    <h3>🧠 Student Dashboard</h3>
+
+    <p>📅 <b>Date:</b> <span id="todayDate"></span></p>
+    <p>🏫 <b>Institution:</b> MITS</p>
+    <p>🎓 <b>Program:</b> B.Tech</p>
+    <p>📌 <b>Status:</b> Active</p>
+    <hr style="border:0;border-top:1px solid rgba(255,255,255,0.3);margin:15px 0;">
+    <p>🚀 <b>Quick Insights</b></p>
+    <p>• Next Exam: Mid-Sem (April)</p>
+</div>
+    <div class="extra-box">
+        <h3>🎓 Career Guidance</h3>
+        <ul style="text-align:left;">
+            <li>📘 Focus on core subjects</li>
+            <li>💻 Practice coding regularly</li>
+            <li>📑 Build a 1-page resume</li>
+            <li>🎯 Apply for internships early</li>
+        </ul>
+    </div>
+
+    <div style="margin-top:30px;">
+        <button onclick="openFeedback()" style="margin-bottom:10px;">📝 Feedback</button>
+        <button onclick="goBackToMain()" style="background:transparent;color:white;border:2px solid white;">
+            ⬅ Back
+        </button>
+    </div>
+</div>
+
+<!-- FEEDBACK PAGE -->
+<div id="feedbackPage" class="card hidden">
+    <h2>📝 Feedback</h2>
+    <form action="https://formspree.io/f/mdalllbr" method="POST">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Your Email" required>
+        <textarea name="message" rows="4" placeholder="Your Feedback" required></textarea>
+        <button type="submit">Submit Feedback</button>
+    </form>
+    <button onclick="closeFeedback()" style="margin-top:15px;">⬅ Back</button>
+</div>
+
+<script>
+document.getElementById("todayDate").innerText = new Date().toDateString();
+
+const notices = [
+  "🔔 Mid-Sem Exams are coming soon",
+  "📢 Learn coding Earn salary",
+  "📚 New NPTEL Courses Added",
+  "🧪 Practical Exams Next Week",
+  "🔔 Chaduvukunte bagupadathav",
+  "📢 Bunk kottaku ra baadcov",
+  "📚 Coding nerchuko ra",
+  "🧪 Chaduvu ra sem exams vastunnay"
+  
+];
+let i = 0;
+setInterval(() => {
+  document.getElementById("noticeText").innerText = notices[i];
+  i = (i + 1) % notices.length;
+}, 3000);
+</script>
+<!-- CALCULATOR MODAL -->
+<div id="calculatorModal" class="modal hidden">
+  <div class="modal-card calculator">
+    <h2>🧮 Calculator</h2>
+
+    <input type="text" id="calcDisplay" readonly>
+
+    <div>
+      <button onclick="press('7')">7</button>
+      <button onclick="press('8')">8</button>
+      <button onclick="press('9')">9</button>
+      <button onclick="press('/')">÷</button>
+
+      <button onclick="press('4')">4</button>
+      <button onclick="press('5')">5</button>
+      <button onclick="press('6')">6</button>
+      <button onclick="press('*')">×</button>
+
+      <button onclick="press('1')">1</button>
+      <button onclick="press('2')">2</button>
+      <button onclick="press('3')">3</button>
+      <button onclick="press('-')">−</button>
+
+      <button onclick="press('0')">0</button>
+      <button onclick="press('%')">%</button>
+      <button onclick="calculate()">=</button>
+      <button onclick="press('+')">+</button>
+    </div>
+
+    <button onclick="clearCalc()">Clear</button>
+    <button onclick="closeCalculator()">⬅ Back</button>
+  </div>
+</div>
+<!-- ABOUT MODAL -->
+<div id="aboutModal" class="modal hidden">
+  <div class="modal-card">
+    <h2>ℹ About This Portal</h2>
+    <p><b>Portal Name:</b> MITS All In One Portal</p>
+    <p><b>Designed By:</b> Veera Siva Reddy</p>
+    <p><b>Program:</b> B.Tech</p>
+    <p><b>Purpose:</b> Student Academic & Career Support</p>
+    <p>This portal was developed to provide all academic tools and resources in one place for MITS students.</p>
+    <button onclick="closeAbout()">⬅ Back</button>
+  </div>
+</div>
+<!-- SCHEDULE MODAL -->
+<div id="scheduleModal" class="modal hidden">
+  <div class="modal-card" style="max-width:90%;height:85vh;">
+    <h2>📅 B.Tech 2nd Year 2nd Sem Schedule</h2>
+
+    <img id="scheduleImage"
+     style="width:100%;max-height:70vh;object-fit:contain;border-radius:10px;">
+
+    <button onclick="closeSchedule()">⬅ Back</button>
+  </div>
+</div>
+<!-- SCHEDULE / TIMETABLE MODAL -->
+<!-- SCHEDULE IMAGE MODAL -->
+<div id="scheduleModal" class="modal hidden">
+  <div class="modal-card" style="max-width:95%;height:85vh;">
+    <h2 id="scheduleTitle">📅 Schedule</h2>
+
+    <img id="scheduleImage"
+         style="width:100%;max-height:70vh;object-fit:contain;border-radius:10px;">
+
+    <button onclick="closeSchedule()">⬅ Back</button>
+  </div>
+</div>
+</body>
+</html>
