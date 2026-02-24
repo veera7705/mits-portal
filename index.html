@@ -184,6 +184,7 @@ button:hover {
     border: none;
     cursor: pointer;
 }
+
 </style>
 
 <script>
@@ -305,17 +306,216 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 /* FIX: define elements */
 let sideMenu, overlay;
-
-document.addEventListener("DOMContentLoaded", () => {
-    sideMenu = document.getElementById("sideMenu");
-    overlay = document.getElementById("overlay");
-});
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("service-worker.js")
       .then(() => console.log("Service Worker Registered"))
       .catch(err => console.log("SW registration failed", err));
   });
+}
+function openSchedule() {
+    document.getElementById("scheduleModal").classList.remove("hidden");
+    closeMenu();
+}
+
+function closeSchedule() {
+    document.getElementById("scheduleModal").classList.add("hidden");
+}
+
+function openTodayClasses() {
+
+    const now = new Date();
+    const day = now.getDay();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const content = document.getElementById("todayClassesContent");
+
+    if (!classSchedule[day]) {
+        content.innerHTML = "<p>No classes today 🎉</p>";
+    } else {
+
+        let html = "<ul style='text-align:left;line-height:1.8;'>";
+
+        classSchedule[day].forEach(cls => {
+
+            // Extract start and end time
+            const [startTime, endTime] = cls.time.split(" - ");
+
+            const startMinutes = convertToMinutes(startTime);
+            const endMinutes = convertToMinutes(endTime);
+
+            const isActive =
+                currentMinutes >= startMinutes &&
+                currentMinutes < endMinutes;
+
+            html += `
+            <li style="
+                padding:6px;
+                border-radius:6px;
+                ${isActive ? "background:#00ff88;color:black;font-weight:bold;" : ""}
+            ">
+                ${cls.time} → ${cls.subject}
+            </li>`;
+        });
+
+        html += "</ul>";
+        content.innerHTML = html;
+    }
+
+    document.getElementById("todayClassesModal").classList.remove("hidden");
+    closeMenu();
+}
+function closeTodayClasses() {
+    document.getElementById("todayClassesModal").classList.add("hidden");
+}
+function requestNotificationPermission() {
+    if ("Notification" in window) {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                alert("Notifications enabled ✅");
+            }
+        });
+    }
+}
+const classSchedule = {
+
+    1: [ // Monday
+        { time: "09:10 AM - 10:10 AM", subject: "JAVA" },
+        { time: "10:10 AM - 11:10 AM", subject: "MOOCS (UIE)" },
+        { time: "11:10 AM - 12:10 PM", subject: "ML" },
+        { time: "01:00 PM - 03:00 PM", subject: "SEC (FSD) Lab" },
+        { time: "03:00 PM - 04:00 PM", subject: "DLCO" },
+        { time: "04:00 PM - 05:00 PM", subject: "EVS" }
+    ],
+
+    2: [ // Tuesday
+        { time: "09:10 AM - 10:10 AM", subject: "SEC (FSD)" },
+        { time: "10:10 AM - 11:10 AM", subject: "DMS" },
+        { time: "11:10 AM - 12:10 PM", subject: "JAVA" },
+        { time: "01:00 PM - 02:00 PM", subject: "ML" },
+        { time: "02:00 PM - 03:00 PM", subject: "EVS" },
+        { time: "03:00 PM - 05:00 PM", subject: "HOLISTIC ACTIVITIES" }
+    ],
+
+    3: [ // Wednesday
+        { time: "09:10 AM - 12:10 PM", subject: "AI & ML LAB" },
+        { time: "01:00 PM - 02:00 PM", subject: "TECH" },
+        { time: "02:00 PM - 03:00 PM", subject: "DMS" },
+        { time: "03:00 PM - 04:00 PM", subject: "DLCO" },
+        { time: "04:00 PM - 05:00 PM", subject: "MOOCS (RPC)" }
+    ],
+
+    4: [ // Thursday
+        { time: "09:10 AM - 10:10 AM", subject: "ML" },
+        { time: "10:10 AM - 11:10 AM", subject: "DLCO" },
+        { time: "11:10 AM - 12:10 PM", subject: "MOOCS (RPC)" },
+        { time: "01:00 PM - 02:00 PM", subject: "JAVA" },
+        { time: "02:00 PM - 03:00 PM", subject: "DMS" },
+        { time: "03:00 PM - 05:00 PM", subject: "HOLISTIC ACTIVITIES" }
+    ],
+
+    5: [ // Friday
+        { time: "09:10 AM - 10:10 AM", subject: "MOOCS (UIE)" },
+        { time: "10:10 AM - 11:10 AM", subject: "VERBAL" },
+        { time: "11:10 AM - 12:10 PM", subject: "DMS" },
+        { time: "01:00 PM - 02:00 PM", subject: "APTITUDE" },
+        { time: "03:00 PM - 05:00 PM", subject: "JAVA LAB" }
+    ],
+
+    6: [ // Saturday
+        { time: "09:10 AM - 10:10 AM", subject: "TECH" },
+        { time: "10:10 AM - 11:10 AM", subject: "MOOCS (RPC)" },
+        { time: "11:10 AM - 12:10 PM", subject: "MOOCS (UIE)" },
+        { time: "01:00 PM - 05:00 PM", subject: "HOLISTIC ACTIVITIES" }
+    ]
+
+};
+function convertToMinutes(timeStr) {
+    // Example: "09:10 AM"
+    const [time, modifier] = timeStr.split(" ");
+    let [hours, minutes] = time.split(":").map(Number);
+
+    if (modifier === "PM" && hours !== 12) {
+        hours += 12;
+    }
+    if (modifier === "AM" && hours === 12) {
+        hours = 0;
+    }
+
+    return hours * 60 + minutes;
+}
+function checkClassNotifications() {
+
+    const now = new Date();
+    const day = now.getDay();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    if (!classSchedule[day]) return;
+
+    classSchedule[day].forEach(cls => {
+
+        // Extract start time only
+        const startTime = cls.time.split(" - ")[0];
+
+        const classMinutes = convertToMinutes(startTime);
+
+        // 🔔 Exact time
+        if (currentMinutes === classMinutes) {
+            showNotification(
+                "📚 Class Started",
+                `${cls.subject} has started`
+            );
+        }
+
+        // 🔔 10 minutes before
+        if (currentMinutes === classMinutes - 10) {
+            showNotification(
+                "⏰ Upcoming Class",
+                `${cls.subject} starts in 10 minutes`
+            );
+        }
+
+    });
+}
+function showNotification(title, body) {
+    if (Notification.permission === "granted") {
+        navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(title, {
+                body: body,
+                icon: "icon-192.png",
+                vibrate: [200, 100, 200]
+            });
+        });
+    }
+}
+setInterval(checkClassNotifications, 60000);
+function openTomorrowClasses() {
+
+    let tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const day = tomorrow.getDay();
+    const content = document.getElementById("todayClassesContent");
+
+    if (!classSchedule[day]) {
+        content.innerHTML = "<p>No classes tomorrow 🎉</p>";
+    } else {
+
+        let html = "<ul style='text-align:left;line-height:1.8;'>";
+
+        classSchedule[day].forEach(cls => {
+            html += `
+            <li style="padding:6px;">
+                ${cls.time} → ${cls.subject}
+            </li>`;
+        });
+
+        html += "</ul>";
+        content.innerHTML = html;
+    }
+
+    document.getElementById("todayClassesModal").classList.remove("hidden");
+    closeMenu();
 }
 </script>
 </head>
@@ -326,8 +526,11 @@ if ("serviceWorker" in navigator) {
 
 <!-- Overlay -->
 <div id="overlay" class="menu-overlay" onclick="closeMenu()"></div>
-<div id="sideMenu" class="side-menu">
+   <div id="sideMenu" class="side-menu">
+    <a href="#" onclick="openSchedule()">📅 Schedule</a>
     <a href="#" onclick="openCalculator()">🧮 Calculator</a>
+    <a href="#" onclick="openTodayClasses()">📅 Today’s Classes</a>
+    <a href="#" onclick="openTomorrowClasses()">📅 Tomorrow’s Classes</a>
     <a href="#" onclick="openAbout()">ℹ About</a>
 </div>
 <!-- START PAGE -->
@@ -351,8 +554,11 @@ if ("serviceWorker" in navigator) {
     <h2 id="menuTitle">🏫 MITS AUTONOMOUS</h2>
 
     <button onclick="toggleDark()" style="margin-bottom:15px;">
-        🌙 Toggle Dark Mode
+        🌙 DARK MODE
     </button>
+    <button onclick="requestNotificationPermission()" style="margin-bottom:10px;">
+🔔 Enable Class Alerts
+</button>
 
     <div class="extra-box">
         <h3 id="greetingText">Welcome</h3>
@@ -365,6 +571,9 @@ if ("serviceWorker" in navigator) {
     </div>
 
     <div class="grid">
+     <a href="https://mits.ac.in/" target="_blank">
+        <button>🏛️ MITS OFFICIAL </button>
+
     <a href="http://20.0.121.215/" target="_blank">
         <button>📚 MOODLE</button>
     </a>
@@ -397,9 +606,16 @@ if ("serviceWorker" in navigator) {
         <button>🎉 STUDENT CLUBS</button>
     </a>
 
-    <a href="https://mits.ac.in/studentclubs" target="_blank">
+    <a href="https://mits.ac.in/radio-90" target="_blank">
         <button>📻 MITS RADIO</button>
     </a>
+   <a href="https://attendly-039.onrender.com/app" target="_blank">
+    <button>📊 ATTENDANCE TRACKER</button>
+</a>
+
+<a href="https://mits.ac.in/facilities" target="_blank">
+    <button>🧑‍🏫 FACILITIES</button>
+</a>
 </div>
     <div class="extra-box">
         <h3>📚 EXTRA COURSES</h3>
@@ -423,7 +639,10 @@ if ("serviceWorker" in navigator) {
     <p>📌 <b>Status:</b> Active</p>
     <hr style="border:0;border-top:1px solid rgba(255,255,255,0.3);margin:15px 0;">
     <p>🚀 <b>Quick Insights</b></p>
-    <p>• Next Exam: Mid-Sem (April)</p>
+    <p>• Next Exam: Mid-Sem (APRIL)</p>
+    <p>• Next Exam: END-Sem (MAY)</p>
+     <p>✨ AURA 2K26 • 27 FEB ✨</p>
+
 </div>
     <div class="extra-box">
         <h3>🎓 Career Guidance</h3>
@@ -522,27 +741,26 @@ setInterval(() => {
 </div>
 <!-- SCHEDULE MODAL -->
 <div id="scheduleModal" class="modal hidden">
-  <div class="modal-card" style="max-width:90%;height:85vh;">
-    <h2>📅 B.Tech 2nd Year 2nd Sem Schedule</h2>
+  <div class="modal-card" style="max-width:95%;height:85vh;">
+    <h2>📅 II-II SCHEDULE</h2>
 
-    <img id="scheduleImage"
-     style="width:100%;max-height:70vh;object-fit:contain;border-radius:10px;">
+    <img src="schedule.png"
+         style="width:100%;max-height:70vh;object-fit:contain;border-radius:10px;"
+         alt="Class Schedule">
 
     <button onclick="closeSchedule()">⬅ Back</button>
   </div>
 </div>
-<!-- SCHEDULE / TIMETABLE MODAL -->
-<!-- SCHEDULE IMAGE MODAL -->
-<div id="scheduleModal" class="modal hidden">
-  <div class="modal-card" style="max-width:95%;height:85vh;">
-    <h2 id="scheduleTitle">📅 Schedule</h2>
 
-    <img id="scheduleImage"
-         style="width:100%;max-height:70vh;object-fit:contain;border-radius:10px;">
+<!-- TODAY'S CLASSES MODAL (SEPARATE) -->
+<div id="todayClassesModal" class="modal hidden">
+  <div class="modal-card" style="max-width:450px;">
+    <h2>📅 Today’s Classes</h2>
 
-    <button onclick="closeSchedule()">⬅ Back</button>
+    <div id="todayClassesContent"></div>
+
+    <button onclick="closeTodayClasses()">⬅ Back</button>
   </div>
 </div>
 </body>
-
 </html>
